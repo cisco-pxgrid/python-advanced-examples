@@ -2,9 +2,8 @@
 #
 # Copyright (c) 2021 Cisco Systems, Inc. and/or its affiliates
 #
-from pxgrid_util import PxgridControl
+from pxgrid_util import PXGridControl
 from pxgrid_util import Config
-from config import Config
 import urllib.request
 import base64
 import time
@@ -45,7 +44,7 @@ if __name__ == '__main__':
             s_logger.addHandler(handler)
             s_logger.setLevel(logging.DEBUG)
 
-    pxgrid = PxgridControl(config=config)
+    pxgrid = PXGridControl(config=config)
 
     while pxgrid.account_activate()['accountState'] != 'ENABLED':
         time.sleep(60)

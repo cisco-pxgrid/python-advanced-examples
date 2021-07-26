@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class PxgridControl:
+class PXGridControl:
     def __init__(self, config):
         self.config = config
 
