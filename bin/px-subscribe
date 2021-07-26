@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2021 Cisco Systems, Inc. and/or its affiliates
 #
-from pxgrid_util import PxgridControl
+from pxgrid_util import PXGridControl
 from pxgrid_util import Config
 import asyncio
 from asyncio.tasks import FIRST_COMPLETED
@@ -172,8 +172,8 @@ if __name__ == '__main__':
         logger.setLevel(logging.DEBUG)
 
         # and set for stomp and ws_stomp modules also
-        for stomp_mod in ['stomp', 'ws_stomp', 'pxgrid']:
-            s_logger = logging.getLogger(stomp_mod)
+        for modname in ['pxgrid_util.stomp', 'pxgrid_util.ws_stomp', 'pxgrid_util.pxgrid']:
+            s_logger = logging.getLogger(modname)
             handler.setFormatter(logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s'))
             s_logger.addHandler(handler)
             s_logger.setLevel(logging.DEBUG)
@@ -194,7 +194,7 @@ if __name__ == '__main__':
     # px grid control object and look at either deeper service discovery
     # or just subscribing to what we're asked to subscribe to
     #
-    pxgrid = PxgridControl(config=config)
+    pxgrid = PXGridControl(config=config)
 
     #
     # in case we need to go appropve in the ISE UI
