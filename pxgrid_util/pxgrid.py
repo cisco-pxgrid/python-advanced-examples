@@ -4,7 +4,6 @@ import urllib.request
 import logging
 
 logger = logging.getLogger(__name__)
-print(f'{__name__}')
 
 
 class PXGridControl:
