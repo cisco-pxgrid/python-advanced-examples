@@ -1,32 +1,60 @@
 import argparse
 import ssl
-import warnings
 
 
 class Config:
     def __init__(self):
         self.__ssl_context = None
         parser = argparse.ArgumentParser()
-        parser.add_argument('-a', '--hostname', help='pxGrid controller host name (multiple ok)', action='append')
-        parser.add_argument('--port', help='pxGrid controller port', default=8910)
-        parser.add_argument('-n', '--nodename', help='Client node name')
-        parser.add_argument('-w', '--password', help='Password (optional)')
-        parser.add_argument('-d', '--description',
-                            help='Description (optional)')
+
+        #
+        # Options that apply to all clients
+        #
         parser.add_argument(
-            '-c', '--clientcert', help='Client certificate chain pem filename (optional)')
-        parser.add_argument('-k', '--clientkey',
-                            help='Client key filename (optional)')
-        parser.add_argument('-p', '--clientkeypassword',
-                            help='Client key password (optional)')
-        parser.add_argument('-s', '--servercert',
-                            help='Server certificates pem filename')
-        parser.add_argument('--insecure', action='store_true',
-                            help='Allow insecure server connections when using SSL')
-        parser.add_argument('--service', type=str,
-                            help='Service name')
-        parser.add_argument('--topic', type=str,
-                            help='Topic to subscribe to')
+            '-a', '--hostname',
+            help='pxGrid controller host name (multiple ok)',
+            action='append')
+        parser.add_argument(
+            '--port',
+            help='pxGrid controller port',
+            default=8910)
+        parser.add_argument(
+            '-n', '--nodename',
+            help='Client node name')
+        parser.add_argument(
+            '-w', '--password',
+            help='Password (optional)')
+        parser.add_argument(
+            '-d', '--description',
+            help='Description (optional)')
+        parser.add_argument(
+            '-c', '--clientcert',
+            help='Client certificate chain pem filename (optional)')
+        parser.add_argument(
+            '-k', '--clientkey',
+            help='Client key filename (optional)')
+        parser.add_argument(
+            '-p', '--clientkeypassword',
+            help='Client key password (optional)')
+        parser.add_argument(
+            '-s', '--servercert',
+            help='Server certificates pem filename')
+        parser.add_argument(
+            '--insecure', action='store_true',
+            help='Allow insecure server connections when using SSL')
+        parser.add_argument(
+            '-v', '--verbose', action='store_true',
+            help='Verbose output')
+
+        #
+        # Options that apply to `px-subscribe` only
+        #
+        parser.add_argument(
+            '--service', type=str,
+            help='Service name')
+        parser.add_argument(
+            '--topic', type=str,
+            help='Topic to subscribe to')
         parser.add_argument(
             '--subscribe', action='store_true',
             help='set up a subscription')
@@ -42,6 +70,10 @@ class Config:
         parser.add_argument(
             '--service-details', type=str,
             help='List out details of a specific service')
+
+        #
+        # Options that apply to populating session directory queries
+        #
         parser.add_argument(
             '--ip', type=str,
             help='Optional IP address for queries')
@@ -49,7 +81,10 @@ class Config:
             '--start-timestamp', type=str,
             help='Optional startTimestamp for queries')
 
-        # options for applying and clearing ANC policies
+        #
+        # Options for getting, applying and clearing ANC policies via
+        # `anc-policy`
+        #
         g = parser.add_mutually_exclusive_group()
         g.add_argument(
             '--get-anc-endpoints', action='store_true',
@@ -71,8 +106,7 @@ class Config:
             help='Clear ANC policy by endpoint MAC address')
         g.add_argument(
             '--clear-anc-policy-by-ip', action='store_true',
-            help='Clear ANC policy by endpoint IP address')
-        
+            help='Clear ANC policy by endpoint IP address')        
         parser.add_argument(
             '--mac-address', type=str,
             help='Optional MAC address for ANC policies')
@@ -82,9 +116,6 @@ class Config:
         parser.add_argument(
             '--nas-ip-address', type=str,
             help='Optional NAS IP address for ANC policies')
-        parser.add_argument(
-            '-v', '--verbose', action='store_true',
-            help='Verbose output if relevant')
 
         self.config = parser.parse_args()
 
