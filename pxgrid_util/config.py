@@ -82,6 +82,17 @@ class Config:
             help='Optional startTimestamp for queries')
 
         #
+        # Options that apply to `system-query-all` only
+        #
+        g = parser.add_mutually_exclusive_group()
+        g.add_argument(
+            '--get-system-health', action='store_true',
+            help='Get all system health objects')
+        g.add_argument(
+            '--get-system-performance', action='store_true',
+            help='Get all system performance objects')
+
+        #
         # Options for getting, applying and clearing ANC policies via
         # `anc-policy`
         #
@@ -178,6 +189,14 @@ class Config:
     def start_timestamp(self):
         return self.config.start_timestamp
 
+    @property
+    def get_system_health(self):
+        return self.config.get_system_health
+        
+    @property
+    def get_system_performance(self):
+        return self.config.get_system_performance
+        
     @property
     def get_anc_endpoints(self):
         return self.config.get_anc_endpoints
