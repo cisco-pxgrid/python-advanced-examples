@@ -16,7 +16,7 @@ class Config:
             action='append')
         parser.add_argument(
             '--port',
-            help='pxGrid controller port',
+            help='pxGrid controller port (default 8910)',
             default=8910)
         parser.add_argument(
             '-n', '--nodename',
