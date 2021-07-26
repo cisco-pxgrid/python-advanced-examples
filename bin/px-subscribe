@@ -39,22 +39,23 @@ event_keys = {}
 
 
 #
-# definitions of service names possible when this script was was written
-# or updated
+# Definitions of ISE pxGrid 2.0 service names valid when this script was was
+# written or updated.
 #
 SERVICE_NAMES = [
-    "com.cisco.ise.mdm",
-    "com.cisco.ise.trustsec",
-    "com.cisco.ise.config.trustsec",
-    "com.cisco.ise.session",
-    "com.cisco.ise.config.anc",
     "com.cisco.endpoint.asset",
     "com.cisco.endpoint",
-    "com.cisco.ise.radius",
-    "com.cisco.ise.system",
-    "com.cisco.ise.sxp",
+    "com.cisco.ise.config.anc",
+    "com.cisco.ise.config.anc",
     "com.cisco.ise.config.profiler",
+    "com.cisco.ise.config.trustsec",
+    "com.cisco.ise.mdm",
     "com.cisco.ise.pubsub",
+    "com.cisco.ise.radius",
+    "com.cisco.ise.session",
+    "com.cisco.ise.sxp",
+    "com.cisco.ise.system",
+    "com.cisco.ise.trustsec",
 ]
 
 
