@@ -1,4 +1,27 @@
+
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/cisco-pxgrid/python-advanced-examples)
+
 # pxGrid Python Advanced Examples
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Introduction](#introduction)
+- [Before Running Samples](#before-running-samples)
+- [Description Of Samples](#description-of-samples)
+- [Sample Invocations](#sample-invocations)
+  - [`px-subscribe`](#px-subscribe)
+    - [Using password authentication plus server public cert](#using-password-authentication-plus-server-public-cert)
+    - [Ignoring server cert check](#ignoring-server-cert-check)
+    - [Subscribing for sessions ignoring server cert check](#subscribing-for-sessions-ignoring-server-cert-check)
+  - [`session-query-all`](#session-query-all)
+  - [`sgacls-query-all`](#sgacls-query-all)
+- [To Generate pxGrid Certificates From ISE](#to-generate-pxgrid-certificates-from-ise)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Introduction
 
 This repository contains the source code for a number of advanced pxGrid examples written in python. The code is based on extending a set of examples found in [https://github.com/cisco-pxgrid/pxgrid-rest-ws](https://github.com/cisco-pxgrid/pxgrid-rest-ws). Please note that what was initially common code has diverged from the code in that repository.
 
