@@ -77,8 +77,8 @@ There are several simple test scripts, listend below.
 | `sgacls-query-all` | Download all current SG-ACL definitions |
 | `sgts-query-all`| Download all SGT definitions |
 | `sxp-query-bindings` | Download all SXP bindings |
-| `system-query-all` | |
-| `user-groups-query` ||
+| `system-query-all` | Download performance or health metrics from an ISE installation |
+| `user-groups-query` | Query for the groups associated with users authenticated to ISE |
 
 Each script has, at minimum, a set of shared options relating to pxGrid node name, shared secrets, cert parameters, etc. These common options are:
 
