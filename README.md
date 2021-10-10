@@ -7,17 +7,18 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [Introduction](#introduction)
-- [Before Running Samples](#before-running-samples)
-- [Description Of Samples](#description-of-samples)
-- [Sample Invocations](#sample-invocations)
-  - [`px-subscribe`](#px-subscribe)
-    - [Using password authentication plus server public cert](#using-password-authentication-plus-server-public-cert)
-    - [Ignoring server cert check](#ignoring-server-cert-check)
-    - [Subscribing for sessions ignoring server cert check](#subscribing-for-sessions-ignoring-server-cert-check)
-  - [`session-query-all`](#session-query-all)
-  - [`sgacls-query-all`](#sgacls-query-all)
-- [To Generate pxGrid Certificates From ISE](#to-generate-pxgrid-certificates-from-ise)
+- [pxGrid Python Advanced Examples](#pxgrid-python-advanced-examples)
+  - [Introduction](#introduction)
+  - [Before Running Samples](#before-running-samples)
+  - [Description Of Samples](#description-of-samples)
+  - [Sample Invocations](#sample-invocations)
+    - [`px-subscribe`](#px-subscribe)
+      - [Using password authentication plus server public cert](#using-password-authentication-plus-server-public-cert)
+      - [Ignoring server cert check](#ignoring-server-cert-check)
+      - [Subscribing for sessions ignoring server cert check](#subscribing-for-sessions-ignoring-server-cert-check)
+    - [`session-query-all`](#session-query-all)
+    - [`sgacls-query-all`](#sgacls-query-all)
+  - [To Generate pxGrid Certificates From ISE](#to-generate-pxgrid-certificates-from-ise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -55,7 +56,7 @@ $ session-query-all
 
 All the examples may be installed using `pip`, making the examples available in your environment.
 
-1. Have Python 3.8 or later available on your system
+1. Have **Python 3.8 or later** available on your system
 2. Optionally (but strongly recommended) create a virtual environment
 2. Install the examples and support module using pip:
 
@@ -69,6 +70,7 @@ There are several simple test scripts, listend below.
 | Script Name | Description |
 |:--|:--|
 | `anc-policy` | Download ANC policies, endpoints with ANC policies applied, and apply ANC policy |
+| `create-new-pxgrid-account` | Create a simple password authentication pxGrid client if you have an ISE admin username and password |
 | `matrix-query-all` | Download all cells of the TrustSec policy matrix |
 | `profiles-query-all` | Download all ISE Profiler profiles |
 | `px-subscribe` | General purpose utility to display details on multiple services and to allow subscriptions to topics of named services |

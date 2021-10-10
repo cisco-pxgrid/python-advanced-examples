@@ -6,6 +6,7 @@ __version__ = _version.get_versions()['version']
 
 from urllib.parse import urlparse
 from .config import Config
+from .create_account_config import CreateAccountConfig
 from .pxgrid import PXGridControl
 from .ws_stomp import WebSocketStomp
 

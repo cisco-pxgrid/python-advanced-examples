@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+#
+# Copyright (c) 2021 Cisco Systems, Inc. and/or its affiliates
+#
+from __future__ import print_function
+
+import logging
+import json
+import base64
+import urllib.request
+import sys
+import errno
+from pxgrid_util import CreateAccountConfig
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
+logger = logging.getLogger(__name__)
+
+
+if __name__ == '__main__':
+    config = CreateAccountConfig()
+
+    # verbose logging if configured
+    if config.verbose:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s'))
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
+
+    # build an opener
+    handler = urllib.request.HTTPSHandler(context=config.ssl_context)
+    opener = urllib.request.build_opener(handler)
+
+
+    ## 1. AccountCreate
+    logger.info('AccountCreate, nodename=%s', config.nodename)
+    rest_request = urllib.request.Request(
+        url='https://{}:{}{}'.format(
+            config.hostname,
+            8910,
+            '/pxgrid/control/AccountCreate'),
+        method='POST',
+        data=json.dumps({'nodeName': config.nodename}).encode())
+    rest_request.add_header('Content-Type', 'application/json')
+    rest_request.add_header('Accept', 'application/json')
+    try:
+        rest_response = opener.open(rest_request)
+    except urllib.error.HTTPError as e:
+        logger.error('Failed to create account, code=%d, reason=%s', e.code, e.reason)
+        sys.exit(errno.EINVAL)
+    account_details = json.loads(rest_response.read().decode())
+
+
+    ## 2. AccountActivate -- with node name and password from previous request
+    logger.info(
+        'AccountActivate, nodename=%s, password=%s',
+        account_details['nodeName'],
+        account_details['password'])
+    rest_request = urllib.request.Request(
+        url='https://{}:{}{}'.format(
+            config.hostname,
+            8910,
+            '/pxgrid/control/AccountActivate'),
+        method='POST',
+        data=json.dumps({'description': config.description}).encode())
+    rest_request.add_header('Content-Type', 'application/json')
+    rest_request.add_header('Accept', 'application/json')
+    b64 = base64.b64encode('{}:{}'.format(
+        account_details['userName'],
+        account_details['password']).encode()).decode()
+    rest_request.add_header('Authorization', 'Basic ' + b64)
+    try:
+        rest_response = opener.open(rest_request)
+    except urllib.error.HTTPError as e:
+        logger.error('Failed to activate account, code=%d, reason=%s', e.code, e.reason)
+        sys.exit(errno.EINVAL)
+    account_activate = json.loads(rest_response.read().decode())
+
+
+    ## 3. PUT /ers/config/pxgridNode/name/{name}/approve
+    logger.info(
+        'Account Approve, nodename=%s, password=%s',
+        account_details['nodeName'],
+        account_details['password'])
+    rest_request = urllib.request.Request(
+        url='https://{}:{}{}'.format(
+            config.hostname,
+            9060,
+            '/ers/config/pxgridNode/name/{}/approve'.format(
+                account_details['nodeName'])),
+        method='PUT',
+        data=json.dumps({}).encode())
+    rest_request.add_header('Content-Type', 'application/json')
+    rest_request.add_header('Accept', 'application/json')
+    rest_request.add_header('ERS-Media-Type', 'pxgrid.pxgridnode.1.0')
+    b64 = base64.b64encode('{}:{}'.format(config.username, config.password).encode()).decode()
+    rest_request.add_header('Authorization', 'Basic ' + b64)
+    try:
+        rest_response = opener.open(rest_request)
+    except urllib.error.HTTPError as e:
+        logger.error('Failed to approve account, code=%d, reason=%s', e.code, e.reason)
+        sys.exit(errno.EINVAL)
+
+
+    # if we got a 204 now, we're done
+    if rest_response.status == 204:
+        details = {
+            'nodeName': account_details['nodeName'],
+            'password': account_details['password'],
+            'hostname': config.hostname,
+        }
+        print(json.dumps(details, indent=2, sort_keys=True))
+    else:
+        logger.error('\nApologies, this utility doesn\'t have complete diagnostics or error recovery :(')
+        logger.error('You probably need to debug the ISE installation you wre talking to!\n')
