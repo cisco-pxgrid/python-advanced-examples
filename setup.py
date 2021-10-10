@@ -39,6 +39,7 @@ setup(
     packages = ['pxgrid_util'],
     scripts=[
         'bin/anc-policy',
+        'bin/create-new-pxgrid-account',
         'bin/matrix-query-all',
         'bin/profiles-query-all',
         'bin/px-subscribe',
