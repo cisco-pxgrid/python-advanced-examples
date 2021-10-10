@@ -4,6 +4,7 @@
 #
 from pxgrid_util import PXGridControl
 from pxgrid_util import Config
+from pxgrid_util import create_override_url
 import urllib.request
 import base64
 import time
@@ -62,6 +63,10 @@ if __name__ == '__main__':
 
     # log url to see what we get via discovery
     logger.info('Using URL %s', url)
+
+    # check to see if we need to override the URL
+    if config.discovery_override:
+        url = create_override_url(config, url)
 
     secret = pxgrid.get_access_secret(node_name)['secret']
     logger.info('Using access secret %s', secret)

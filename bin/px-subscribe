@@ -4,6 +4,7 @@
 #
 from pxgrid_util import PXGridControl
 from pxgrid_util import Config
+from pxgrid_util import create_override_url
 import asyncio
 from asyncio.tasks import FIRST_COMPLETED
 import json
@@ -70,6 +71,11 @@ async def default_subscription_loop(config, secret, pubsub_node_name, ws_url, to
     '''
     Simple subscription loop just to display whatever events arrive.
     '''
+    if config.discovery_override:
+        logger.info('Overriding original URL %s', ws_url)
+        ws_url = create_override_url(config, ws_url)
+        logger.info('New URL %s', ws_url)
+
     logger.debug('default_subscription_loop: starting subscription to %s at %s', topic, ws_url)
     ws = WebSocketStomp(ws_url, config.node_name, secret, config.ssl_context)
     await ws.connect()
@@ -103,6 +109,11 @@ async def session_dedup_loop(config, secret, pubsub_node_name, ws_url, topic):
     uses MD5 (for speed) on a key-sorted dump of the event (which ensures that
     duplicate events are detected by the hash digest differing.)
     '''
+    if config.discovery_override:
+        logger.info('Overriding original URL %s', ws_url)
+        ws_url = create_override_url(config, ws_url)
+        logger.info('New URL %s', ws_url)
+        
     logger.debug('session_dedup_loop: starting subscription to %s at %s', topic, ws_url)
     assert topic == '/topic/com.cisco.ise.session', '%s is not the sessionTopic'
 

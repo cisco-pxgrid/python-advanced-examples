@@ -16,7 +16,7 @@ class Config:
             action='append')
         parser.add_argument(
             '--port',
-            help='pxGrid controller port (default 8910)',
+            help='pxGrid port (default 8910)',
             default=8910)
         parser.add_argument(
             '-n', '--nodename',
@@ -42,6 +42,9 @@ class Config:
         parser.add_argument(
             '--insecure', action='store_true',
             help='Allow insecure server connections when using SSL')
+        parser.add_argument(
+            '--discovery-override', type=str,
+            help='Override pxGrid service discovery (for test environments without proper DNS)')
         parser.add_argument(
             '-v', '--verbose', action='store_true',
             help='Verbose output')
@@ -172,6 +175,10 @@ class Config:
             return self.config.password
         else:
             return ''
+
+    @property
+    def discovery_override(self):
+        return self.config.discovery_override
 
     @property
     def service(self):
