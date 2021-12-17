@@ -7,20 +7,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 class WebSocketStomp:
-    def __init__(self, ws_url, user, password, ssl_ctx):
+    def __init__(self, ws_url, user, password, ssl_ctx, ping_interval=20.0):
         self.ws_url = ws_url
         self.user = user
         self.password = password
         self.ssl_ctx = ssl_ctx
+        self.ping_interval = ping_interval
         self.ws = None
 
     async def connect(self):
+        logger.debug('WebSocket Connect, ws_url=%s', self.ws_url)
         b64 = base64.b64encode(
             (self.user + ':' + self.password).encode()).decode()
-        self.ws = await websockets.connect(uri=self.ws_url,
-                                           extra_headers={
-                                               'Authorization': 'Basic ' + b64},
-                                           ssl=self.ssl_ctx)
+        self.ws = await websockets.connect(
+            uri=self.ws_url,
+            ping_interval=self.ping_interval,
+            extra_headers={
+                'Authorization': 'Basic ' + b64},
+            ssl=self.ssl_ctx)
 
     async def stomp_connect(self, hostname):
         logger.debug('STOMP CONNECT host=%s', hostname)

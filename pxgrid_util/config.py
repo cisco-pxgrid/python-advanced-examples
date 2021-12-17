@@ -53,6 +53,10 @@ class Config:
         # Options that apply to `px-subscribe` only
         #
         parser.add_argument(
+            '--ws-ping-interval', type=float,
+            default=20.0,
+            help='WebSocket ping interval in seconds (float)')
+        parser.add_argument(
             '--service', type=str,
             help='Service name')
         parser.add_argument(
@@ -64,9 +68,16 @@ class Config:
         parser.add_argument(
             '--subscribe-all', action='store_true',
             help='subscribe to ALL nodes discovered')
-        parser.add_argument(
+
+        # optionally select a subscriber that is not the default one
+        g = parser.add_mutually_exclusive_group()
+        g.add_argument(
+            '--connect-only', action='store_true',
+            help='connect to pxGrid brokers only, no subscription')
+        g.add_argument(
             '--session-dedup', action='store_true',
             help='run the sessionTopic de-duplicating subscriber')
+
         parser.add_argument(
             '--services', action='store_true',
             help='List out supported services')
@@ -142,8 +153,16 @@ class Config:
         return self.config.subscribe_all
 
     @property
+    def connect_only(self):
+        return self.config.connect_only
+
+    @property
     def session_dedup(self):
         return self.config.session_dedup
+
+    @property
+    def ws_ping_interval(self):
+        return self.config.ws_ping_interval
 
     @property
     def services(self):

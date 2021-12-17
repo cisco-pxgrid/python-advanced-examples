@@ -14,6 +14,7 @@ import logging
 import threading
 import hashlib
 from websockets import ConnectionClosed
+from websockets.exceptions import WebSocketException
 from pxgrid_util import WebSocketStomp
 from signal import SIGINT, SIGTERM
 
@@ -77,10 +78,16 @@ async def default_subscription_loop(config, secret, pubsub_node_name, ws_url, to
         logger.info('New URL %s', ws_url)
 
     logger.debug('default_subscription_loop: starting subscription to %s at %s', topic, ws_url)
-    ws = WebSocketStomp(ws_url, config.node_name, secret, config.ssl_context)
-    await ws.connect()
-    await ws.stomp_connect(pubsub_node_name)
-    await ws.stomp_subscribe(topic)
+    ws = WebSocketStomp(
+        ws_url, config.node_name, secret, config.ssl_context,
+        ping_interval=config.ws_ping_interval)
+    try:
+        await ws.connect()
+        await ws.stomp_connect(pubsub_node_name)
+        await ws.stomp_subscribe(topic)
+    except Exception as e:
+        logger.debug('Failed to connect, Exception: %s', e.__str__())
+        return
     try:
         while True:
             message = json.loads(await ws.stomp_read_message())
@@ -89,6 +96,45 @@ async def default_subscription_loop(config, secret, pubsub_node_name, ws_url, to
             sys.stdout.flush()
     except asyncio.CancelledError as e:
         pass
+    except WebSocketException as e:
+        logger.debug('WebSocketException: %s', e.__str__())
+        return
+    logger.debug('shutting down listener...')
+    await ws.stomp_disconnect('123')
+    await asyncio.sleep(2.0)
+    await ws.disconnect()
+
+
+async def connect_only_loop(config, secret, pubsub_node_name, ws_url, topic):
+    '''
+    Simple subscription loop just to display whatever events arrive.
+    '''
+    if config.discovery_override:
+        logger.info('Overriding original URL %s', ws_url)
+        ws_url = create_override_url(config, ws_url)
+        logger.info('New URL %s', ws_url)
+
+    logger.debug('connect_only_loop: starting subscription to %s at %s', topic, ws_url)
+    ws = WebSocketStomp(
+        ws_url, config.node_name, secret, config.ssl_context,
+        ping_interval=config.ws_ping_interval)
+    try:
+        await ws.connect()
+        await ws.stomp_connect(pubsub_node_name)
+    except Exception as e:
+        logger.debug('Failed to connect, Exception: %s', e.__str__())
+        return
+    try:
+        while True:
+            message = json.loads(await ws.stomp_read_message())
+            logger.debug('[%s] message received', pubsub_node_name)
+            print(json.dumps(message, indent=2, sort_keys=True), file=sys.stdout)
+            sys.stdout.flush()
+    except asyncio.CancelledError as e:
+        pass
+    except WebSocketException as e:
+        logger.debug('WebSocketException: %s', e.__str__())
+        return
     logger.debug('shutting down listener...')
     await ws.stomp_disconnect('123')
     await asyncio.sleep(2.0)
@@ -117,10 +163,16 @@ async def session_dedup_loop(config, secret, pubsub_node_name, ws_url, topic):
     logger.debug('session_dedup_loop: starting subscription to %s at %s', topic, ws_url)
     assert topic == '/topic/com.cisco.ise.session', '%s is not the sessionTopic'
 
-    ws = WebSocketStomp(ws_url, config.node_name, secret, config.ssl_context)
-    await ws.connect()
-    await ws.stomp_connect(pubsub_node_name)
-    await ws.stomp_subscribe(topic)
+    ws = WebSocketStomp(
+        ws_url, config.node_name, secret, config.ssl_context,
+        ping_interval=config.ws_ping_interval)
+    try:
+        await ws.connect()
+        await ws.stomp_connect(pubsub_node_name)
+        await ws.stomp_subscribe(topic)
+    except Exception as e:
+        logger.debug('Failed to connect, Exception: %s', e.__str__())
+        return
     try:
         while True:
             message = json.loads(await ws.stomp_read_message())
@@ -147,6 +199,9 @@ async def session_dedup_loop(config, secret, pubsub_node_name, ws_url, topic):
             sys.stdout.flush()
     except asyncio.CancelledError as e:
         pass
+    except WebSocketException as e:
+        logger.debug('WebSocketException: %s', e.__str__())
+        return
     logger.debug('shutting down listener...')
     await ws.stomp_disconnect('123')
     await asyncio.sleep(2.0)
@@ -294,6 +349,8 @@ if __name__ == '__main__':
     subscription_loop = default_subscription_loop
     if config.session_dedup:
         subscription_loop = session_dedup_loop
+    if config.connect_only:
+        subscription_loop = connect_only_loop
 
     if not config.subscribe_all:
 
