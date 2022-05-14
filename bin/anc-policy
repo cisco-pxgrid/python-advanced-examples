@@ -64,27 +64,46 @@ if __name__ == '__main__':
 
     if config.get_anc_endpoints:
         url = service['properties']['restBaseUrl'] + '/getEndpoints'
-    elif config.get_anc_endpoint_by_mac:
-        url = service['properties']['restBaseUrl'] + '/getEndpointByMacAddress'
-        payload['macAddress'] = config.mac_address
+
     elif config.get_anc_policies:
         url = service['properties']['restBaseUrl'] + '/getPolicies'
-    elif config.apply_anc_policy_by_mac:
-        url = service['properties']['restBaseUrl'] + '/applyEndpointByMacAddress'
-        payload['macAddress'] = config.mac_address
+
+    elif config.apply_anc_policy:
+        assert config.anc_policy
+        assert config.anc_mac_address
+        url = service['properties']['restBaseUrl'] + '/applyEndpointPolicy'
+        payload['macAddress'] = config.anc_mac_address
         payload['policyName'] = config.anc_policy
+
+    elif config.apply_anc_policy_by_mac:
+        assert config.anc_policy
+        assert config.anc_mac_address
+        url = service['properties']['restBaseUrl'] + '/applyEndpointByMacAddress'
+        payload['macAddress'] = config.anc_mac_address
+        payload['policyName'] = config.anc_policy
+
     elif config.apply_anc_policy_by_ip:
+        assert config.anc_policy
+        assert config.anc_ip_address
         url = service['properties']['restBaseUrl'] + '/applyEndpointByIpAddress'
         payload['ipAddress'] = config.anc_ip_address
         payload['policyName'] = config.anc_policy
+
     elif config.clear_anc_policy_by_mac:
+        assert config.anc_mac_address
         url = service['properties']['restBaseUrl'] + '/clearEndpointByMacAddress'
-        payload['macAddress'] = config.mac_address
+        payload['macAddress'] = config.anc_mac_address
+
     elif config.clear_anc_policy_by_ip:
+        assert config.anc_ip_address
         url = service['properties']['restBaseUrl'] + '/clearEndpointByIpAddress'
         payload['ipAddress'] = config.anc_ip_address
+
     elif config.get_anc_policy_by_mac:
+        assert config.anc_mac_address
         url = service['properties']['restBaseUrl'] + '/getEndpointByMacAddress'
+        payload['macAddress'] = config.anc_mac_address
+
     else:
         logger.debug('no valid options for getting, applying or removing ANC policy')
         sys.exit(1)
