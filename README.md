@@ -281,7 +281,7 @@ anc-policy \
 
 #### Apply policy by MAC address
 
-The MAC address specified does not need to be for an actiove session.
+The MAC address specified does not need to be for an active session.
 
 ```
 anc-policy \
@@ -296,7 +296,7 @@ anc-policy \
 
 #### Clear policy by MAC address
 
-The MAC address specified does not need to be for an actiove session.
+The MAC address specified does not need to be for an active session.
 
 ```
 anc-policy \
