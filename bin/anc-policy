@@ -119,4 +119,7 @@ if __name__ == '__main__':
     payload = json.dumps(payload)
     logger.info('payload = %s', payload)
     resp = query(config, secret, url, payload)
-    print(json.dumps(json.loads(resp), indent=2, sort_keys=True))
+    if len(resp) != 0:
+        print(json.dumps(json.loads(resp), indent=2, sort_keys=True))
+    else:
+        print('{}')
