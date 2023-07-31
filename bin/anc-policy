@@ -11,6 +11,8 @@ import time
 import logging
 import json
 import sys
+import asyncio
+import aiohttp
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +28,113 @@ def query(config, secret, url, payload):
     rest_request.add_header('Authorization', 'Basic ' + b64)
     rest_response = opener.open(rest_request)
     return rest_response.read().decode()
+
+
+# parallelism
+NUM_COROUTINES = 20
+
+# queue for all the MAC addresses to apply policy to
+mac_queue = asyncio.Queue()
+
+
+async def anc_applier(
+            q=None,
+            config=None,
+            secret=None,
+            url=None,
+            policy=None):
+    
+    assert q is not None
+    assert config is not None
+    assert secret is not None
+    assert url is not None
+    assert policy is not None
+
+    # what're we doing?
+    while not q.empty():
+
+        # create a session
+        auth = aiohttp.BasicAuth(config.node_name, secret)
+        conn = aiohttp.TCPConnector(ssl=config.ssl_context)
+        async with aiohttp.ClientSession(auth=auth, connector=conn) as session:
+
+            # pull from the queue until empty
+            while not q.empty():
+                m = await q.get()
+                payload = json.dumps({
+                    'macAddress': m,
+                    'policyName': policy,
+                })
+
+                # applies the ANC policy
+                response = await session.post(
+                    url=url,
+                    headers={
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    data=payload,
+                )
+
+                # tell the world how cool we are
+                logger.info('Applied policy %s to %s, response = %d', policy, m, response.status)
+
+
+async def apply_anc_policy_to_macs(
+    config=None,
+    secret=None,
+    url=None,
+    policy=None,
+    mac_address_file=None,
+    coroutines=NUM_COROUTINES):
+
+    assert config is not None
+    assert secret is not None
+    assert url is not None
+    assert policy is not None
+    assert mac_address_file is not None
+
+    # what're we doing?
+    logger.info(
+        'Applying policy %s, reading MAC addresses from %s, using %d coroutines',
+        policy,
+        mac_address_file,
+        coroutines)
+
+    # enqueue all the MAC addresses
+    with open(mac_address_file, 'r') as macs:
+        for m in macs.readlines():
+            m = m[:-1]
+            mac_queue.put_nowait(m)
+
+    # start all the coroutines
+    anc_tasks = [
+        asyncio.create_task(anc_applier(
+            q=mac_queue,
+            config=config,
+            secret=secret,
+            url=url,
+            policy=policy))
+        for t in range(0, coroutines)
+    ]
+
+    # wait for the workers to be done
+    await asyncio.gather(*anc_tasks)
+
+
+def apply_bulk_anc_policy_by_mac(config, secret, url, bulk_policy, bulk_mac_addrs_file):
+    '''
+    Apply ANC policy in bulk using `asyncio` techniques.
+    '''
+    asyncio.get_event_loop().run_until_complete(
+        apply_anc_policy_to_macs(
+            config=config,
+            secret=secret,
+            url=url,
+            policy=bulk_policy,
+            mac_address_file=bulk_mac_addrs_file,
+            coroutines=NUM_COROUTINES,
+    ))    
 
 
 if __name__ == '__main__':
@@ -61,6 +170,8 @@ if __name__ == '__main__':
     secret = pxgrid.get_access_secret(node_name)['secret']
     logger.info('Using access secret %s', secret)
     payload = {}
+    bulk_policy = None
+    bulk_mac_addrs_file = None
 
     if config.get_anc_endpoints:
         url = service['properties']['restBaseUrl'] + '/getEndpoints'
@@ -81,6 +192,12 @@ if __name__ == '__main__':
         url = service['properties']['restBaseUrl'] + '/applyEndpointByMacAddress'
         payload['macAddress'] = config.anc_mac_address
         payload['policyName'] = config.anc_policy
+
+    elif config.apply_anc_policy_by_mac_bulk:
+        assert config.anc_policy
+        url = service['properties']['restBaseUrl'] + '/applyEndpointByMacAddress'
+        bulk_policy = config.anc_policy
+        bulk_mac_addrs_file = config.apply_anc_policy_by_mac_bulk
 
     elif config.apply_anc_policy_by_ip:
         assert config.anc_policy
@@ -116,10 +233,14 @@ if __name__ == '__main__':
         url = create_override_url(config, url)
 
     # make the request!!
-    payload = json.dumps(payload)
-    logger.info('payload = %s', payload)
-    resp = query(config, secret, url, payload)
-    if len(resp) != 0:
-        print(json.dumps(json.loads(resp), indent=2, sort_keys=True))
+    if not bulk_policy:
+        payload = json.dumps(payload)
+        logger.info('payload = %s', payload)
+        resp = query(config, secret, url, payload)
+        if len(resp) != 0:
+            print(json.dumps(json.loads(resp), indent=2, sort_keys=True))
+        else:
+            print('{}')
     else:
-        print('{}')
+        apply_bulk_anc_policy_by_mac(config, secret, url, bulk_policy, bulk_mac_addrs_file)
+
