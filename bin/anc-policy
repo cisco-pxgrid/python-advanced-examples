@@ -216,6 +216,16 @@ if __name__ == '__main__':
         url = service['properties']['restBaseUrl'] + '/clearEndpointByIpAddress'
         payload['ipAddress'] = config.anc_ip_address
 
+    elif config.create_anc_policy:
+        assert config.anc_policy_action
+        url = service['properties']['restBaseUrl'] + '/createPolicy'
+        payload['name'] = config.create_anc_policy
+        payload['actions'] = [ config.anc_policy_action.__str__() ]
+
+    elif config.delete_anc_policy:
+        url = service['properties']['restBaseUrl'] + '/deletePolicyByName'
+        payload['name'] = config.delete_anc_policy
+
     elif config.get_anc_policy_by_mac:
         assert config.anc_mac_address
         url = service['properties']['restBaseUrl'] + '/getEndpointByMacAddress'

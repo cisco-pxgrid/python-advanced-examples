@@ -1,5 +1,16 @@
 import argparse
 import ssl
+import enum
+
+
+class AncPolicyType(enum.Enum):
+    quarantine = 'QUARANTINE'
+    shutdown = 'SHUT_DOWN'
+    port_bounce = 'PORT_BOUNCE'
+    reauthenticate = 'RE_AUTHENTICATE'
+
+    def __str__(self):
+        return self.value
 
 
 class Config:
@@ -138,6 +149,12 @@ class Config:
         g.add_argument(
             '--clear-anc-policy-by-ip', action='store_true',
             help='Clear ANC policy by endpoint IP address')
+        g.add_argument(
+            '--create-anc-policy', type=str,
+            help='Create named ANC policy')
+        g.add_argument(
+            '--delete-anc-policy', type=str,
+            help='Delete named ANC policy')
 
         # anc parameters
         parser.add_argument(
@@ -152,6 +169,9 @@ class Config:
         parser.add_argument(
             '--anc-nas-ip-address', type=str,
             help='Optional NAS IP address for ANC policies')
+        parser.add_argument(
+            '--anc-policy-action', type=AncPolicyType,
+            choices=list(AncPolicyType))
 
         self.config = parser.parse_args()
 
@@ -271,6 +291,14 @@ class Config:
         return self.config.clear_anc_policy_by_ip
         
     @property
+    def create_anc_policy(self):
+        return self.config.create_anc_policy
+        
+    @property
+    def delete_anc_policy(self):
+        return self.config.delete_anc_policy
+        
+    @property
     def anc_mac_address(self):
         return self.config.anc_mac_address
 
@@ -285,6 +313,10 @@ class Config:
     @property
     def anc_nas_ip_address(self):
         return self.config.anc_nas_ip_address
+
+    @property
+    def anc_policy_action(self):
+        return self.config.anc_policy_action
 
     @property
     def description(self):
