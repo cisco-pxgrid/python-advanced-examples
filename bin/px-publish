@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+#
+# Copyright (c) 2021 Cisco Systems, Inc. and/or its affiliates
+#
+from io import StringIO
+from pxgrid_util import PXGridControl
+from pxgrid_util import Config
+from pxgrid_util import create_override_url
+import asyncio
+from asyncio.tasks import FIRST_COMPLETED
+import json
+import sys
+import time
+import logging
+import threading
+import hashlib
+from websockets import ConnectionClosed
+from websockets.exceptions import WebSocketException
+from pxgrid_util import WebSocketStomp
+from signal import SIGINT, SIGTERM
+
+
+#
+# the global logger
+#
+logger = logging.getLogger(__name__)
+
+
+async def default_service_reregister_loop(config, pxgrid, service_id, reregister_delay):
+    '''
+    Simple custom service reregistration to keep things alive.
+    '''
+    try:
+        while True:
+            await asyncio.sleep(reregister_delay)
+            try:
+                resp = pxgrid.service_reregister(service_id)
+                logger.debug(
+                    '[default_service_reregister_loop] service reregister response %s',
+                    json.dumps(resp))
+            except Exception as e:
+                logger.debug(
+                    '[default_service_reregister_loop] failed to reregister, Exception: %s',
+                    e.__str__())
+
+            # pull service back to check
+            service_lookup_response = pxgrid.service_lookup(config.service)
+            service = service_lookup_response['services'][0]
+            debug_text = json.dumps(resp, indent=2, sort_keys=True)
+            for debug_line in debug_text.splitlines():
+                logger.debug('[default_publish_loop] service_register_response %s', debug_line)
+
+    except asyncio.CancelledError as e:
+        logger.debug('[default_service_reregister_loop] reregister loop cancelled')
+
+
+async def default_publish_loop(config, secret, pubsub_node_name, ws_url, topic):
+    '''
+    Simple publish loop just to send some canned data.
+    '''
+    if config.discovery_override:
+        logger.info('[default_publish_loop] overriding original URL %s', ws_url)
+        ws_url = create_override_url(config, ws_url)
+        logger.info('[default_publish_loop] new URL %s', ws_url)
+
+    logger.debug('[default_publisher_loop] starting subscription to %s at %s', topic, ws_url)
+
+    logger.debug('[default_publish_loop] opening web socket and stomp')
+    ws = WebSocketStomp(
+        ws_url,
+        config.node_name,
+        secret,
+        config.ssl_context,
+        # ping_interval=None)
+        ping_interval=config.ws_ping_interval)
+
+    try:
+        logger.debug('[default_publish_loop] connect websocket')    
+        await ws.connect()
+        logger.debug('[default_publish_loop] connect STOMP node %s', pubsub_node_name)    
+        await ws.stomp_connect(pubsub_node_name)
+    except Exception as e:
+        logger.debug('[default_publish_loop] failed to connect, Exception: %s', e.__str__())
+        return
+    try:
+        count = 0
+        while True:
+
+            await asyncio.sleep(1.0)
+            count += 1
+            message = {
+                'count': count,
+                'data': 'cool and froody',
+            }
+            try:
+                await ws.stomp_send(topic, json.dumps(message))
+            except Exception as e:
+                logger.debug(
+                    '[default_publish_loop] Exception: %s',
+                    e.__str__())
+            logger.debug(
+                '[default_publish_loop] message published to node %s, topic %s',
+                pubsub_node_name,
+                topic)
+            sys.stdout.flush()
+    except asyncio.CancelledError as e:
+        pass
+    except WebSocketException as e:
+        logger.debug(
+            '[default_publish_loop] WebSocketException: %s',
+            e.__str__())
+        return
+    
+    logger.debug('[default_publish_loop] shutting down publisher...')
+    await ws.stomp_disconnect('123')
+    await asyncio.sleep(2.0)
+    await ws.disconnect()
+
+
+if __name__ == '__main__':
+
+    #
+    # this will parse all the CLI options
+    #
+    config = Config()
+
+    #
+    # verbose logging if configured
+    #
+    if config.verbose:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s'))
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
+        # and set for stomp and ws_stomp modules also
+        for modname in ['pxgrid_util.stomp', 'pxgrid_util.ws_stomp', 'pxgrid_util.pxgrid']:
+            s_logger = logging.getLogger(modname)
+            handler.setFormatter(logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s'))
+            s_logger.addHandler(handler)
+            s_logger.setLevel(logging.DEBUG)
+
+    #
+    # we need a hostname and both a service name and a topic short name;
+    # note that other checks may also fail!
+    #
+    if not config.hostname:
+        print("No hostname!")
+        sys.exit(0)
+    if not config.service:
+        print('Need a service to register and name pub-sub STOMP topic')
+        sys.exit(1)
+    if not config.topic:
+        print('Need a topic short name to register')
+        sys.exit(1)
+
+    #
+    # if we have met the basic criteria then we can move forward and set up
+    # the px grid control object
+    #
+    pxgrid = PXGridControl(config=config)
+
+    #
+    # in case we need to go appropve in the ISE UI
+    #
+    while pxgrid.account_activate()['accountState'] != 'ENABLED':
+        time.sleep(60)
+
+    #
+    # register a custom service
+    #
+    properties = {
+        'wsPubsubService': 'com.cisco.ise.pubsub',
+        f'{config.topic}': f'/topic/{config.service}',
+        # 'restBaseUrl': 'https://localhost',
+        # 'bulkDownload': 'bulkDownload',
+    }
+    resp = pxgrid.service_register(config.service, properties)
+    debug_text = json.dumps(resp, indent=2, sort_keys=True)
+    for debug_line in debug_text.splitlines():
+        logger.debug('[service_register_response] %s', debug_line)
+
+    #
+    # setup periodic service reregistration as a task
+    #
+    reregister_task = asyncio.ensure_future(
+        default_service_reregister_loop(
+            config,
+            pxgrid,
+            resp['id'],
+            config.reregister_delay,
+    ))
+
+    #
+    # now lookup service and topic details for the service we just registered
+    #
+    service_lookup_response = pxgrid.service_lookup(config.service)
+    slr_string = json.dumps(service_lookup_response, indent=2, sort_keys=True)
+    logger.debug('service lookup response:')
+    for s in slr_string.splitlines():
+        logger.debug('  %s', s)
+    service = service_lookup_response['services'][0]
+    pubsub_service_name = service['properties']['wsPubsubService']
+    try:
+        topic = service['properties'][config.topic]
+    except KeyError as e:
+        logger.debug('invalid topic %s', config.topic)
+        possible_topics = [
+            k for k in service['properties'].keys()
+            if k != 'wsPubsubService' and k != 'restBaseUrl' and k != 'restBaseURL'
+        ]
+        logger.debug('possible topic handles: %s', ', '.join(possible_topics))
+        sys.exit(1)
+
+    #
+    # lookup the pubsub service
+    #
+    service_lookup_response = pxgrid.service_lookup(pubsub_service_name)
+
+    #
+    # just use the first pubsub service node returned (there is randomness)
+    #
+    pubsub_service = service_lookup_response['services'][0]
+    pubsub_node_name = pubsub_service['nodeName']
+    secret = pxgrid.get_access_secret(pubsub_node_name)['secret']
+    ws_url = pubsub_service['properties']['wsUrl']
+
+    #
+    # setup the publishing loop
+    #
+    main_task = asyncio.ensure_future(
+        default_publish_loop(
+            config,
+            secret,
+            pubsub_node_name,
+            ws_url,
+            topic,
+    ))
+
+    #
+    # setup sigint/sigterm handlers
+    #
+    def signal_handlers():
+        main_task.cancel()
+        reregister_task.cancel()
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(SIGINT, signal_handlers)
+    loop.add_signal_handler(SIGTERM, signal_handlers)
+
+    #
+    # finally, get going!!
+    #
+    try:
+        loop.run_until_complete(main_task)
+    except:
+        pass

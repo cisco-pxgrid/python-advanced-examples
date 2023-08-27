@@ -170,6 +170,15 @@ class Config:
             '--anc-policy-action', type=AncPolicyType,
             choices=list(AncPolicyType))
 
+        # publishing parameters
+        parser.add_argument(
+            '--publish-delay', type=float, default=1.0,
+            help='delay between custom event publishes')
+        parser.add_argument(
+            '--reregister-delay', type=float, default=1.0,
+            help='delay between custom service reregistrations')
+
+
         self.config = parser.parse_args()
 
     @property
@@ -310,6 +319,14 @@ class Config:
     @property
     def anc_policy_action(self):
         return self.config.anc_policy_action
+
+    @property
+    def publish_delay(self):
+        return self.config.publish_delay
+
+    @property
+    def reregister_delay(self):
+        return self.config.reregister_delay
 
     @property
     def description(self):

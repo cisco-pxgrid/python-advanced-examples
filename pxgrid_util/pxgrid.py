@@ -50,7 +50,7 @@ class PXGridControl:
     def service_reregister(self, service_id):
         logger.debug('service_reregister %s', service_id)
         payload = {'id': service_id}
-        return self.send_rest_request('ServiceRegister', payload)
+        return self.send_rest_request('ServiceReregister', payload)
 
     def service_unregister(self, service_id):
         logger.debug('service_unregister %s', service_id)
