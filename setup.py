@@ -42,6 +42,7 @@ setup(
         'bin/create-new-pxgrid-account',
         'bin/matrix-query-all',
         'bin/profiles-query-all',
+        'bin/px-publish',
         'bin/px-subscribe',
         'bin/session-query-all',
         'bin/session-query-by-ip',
