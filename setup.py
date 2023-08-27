@@ -58,6 +58,7 @@ setup(
     download_url='https://github.com/cisco-pxgrid/python-advanced-examples',
     install_requires=[
         'websockets>=9.1',
+        'aiohttp>=3.8.5',
     ],
     include_package_data=True,
     platforms=["Posix; OS X; Windows"],

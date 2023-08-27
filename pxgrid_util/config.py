@@ -135,6 +135,9 @@ class Config:
             '--apply-anc-policy-by-mac', action='store_true',
             help='Apply named ANC policy by endpoint MAC address')
         g.add_argument(
+            '--apply-anc-policy-by-mac-bulk', type=str,
+            help='Bulk-apply named ANC policy by endpoint MAC addresses in flat file')
+        g.add_argument(
             '--apply-anc-policy-by-ip', action='store_true',
             help='Apply named ANC policy by endpoint IP address')
         g.add_argument(
@@ -279,6 +282,10 @@ class Config:
     @property 
     def apply_anc_policy_by_mac(self):
         return self.config.apply_anc_policy_by_mac
+        
+    @property 
+    def apply_anc_policy_by_mac_bulk(self):
+        return self.config.apply_anc_policy_by_mac_bulk
         
     @property
     def apply_anc_policy_by_ip(self):
