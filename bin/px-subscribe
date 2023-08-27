@@ -79,7 +79,10 @@ async def default_subscription_loop(config, secret, pubsub_node_name, ws_url, to
 
     logger.debug('default_subscription_loop: starting subscription to %s at %s', topic, ws_url)
     ws = WebSocketStomp(
-        ws_url, config.node_name, secret, config.ssl_context,
+        ws_url,
+        config.node_name,
+        secret,
+        config.ssl_context,
         ping_interval=config.ws_ping_interval)
     try:
         await ws.connect()
