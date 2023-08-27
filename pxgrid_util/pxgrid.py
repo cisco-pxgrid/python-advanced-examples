@@ -47,6 +47,16 @@ class PXGridControl:
         payload = {'name': service_name, 'properties': properties}
         return self.send_rest_request('ServiceRegister', payload)
 
+    def service_reregister(self, service_id):
+        logger.debug('service_reregister %s', service_id)
+        payload = {'id': service_id}
+        return self.send_rest_request('ServiceRegister', payload)
+
+    def service_unregister(self, service_id):
+        logger.debug('service_unregister %s', service_id)
+        payload = {'id': service_id}
+        return self.send_rest_request('ServiceUnregister', payload)
+
     def get_access_secret(self, peer_node_name):
         logger.debug('get_access_secret %s', peer_node_name)
         payload = {'peerNodeName': peer_node_name}
