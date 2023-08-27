@@ -81,6 +81,7 @@ There are several simple test scripts, listend below.
 | `create-new-pxgrid-account` | Create a simple password authentication pxGrid client if you have an ISE admin username and password |
 | `matrix-query-all` | Download all cells of the TrustSec policy matrix |
 | `profiles-query-all` | Download all ISE Profiler profiles |
+| `px-publish` | Simple utility to publish a simple message to a custom service and topic. More of a template to copy. |
 | `px-subscribe` | General purpose utility to display details on multiple services and to allow subscriptions to topics of named services |
 | `session-query-all` | Download all current sessions |
 | `session-query-by-ip` | Perform a query on the session topic using a given IP address |
