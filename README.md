@@ -12,6 +12,7 @@
   - [Before Running Samples](#before-running-samples)
   - [Description Of Samples](#description-of-samples)
   - [Sample Invocations](#sample-invocations)
+    - [`px-publish`](#px-publish)
     - [`px-subscribe`](#px-subscribe)
       - [Using password authentication plus server public cert](#using-password-authentication-plus-server-public-cert)
       - [Ignoring server cert check](#ignoring-server-cert-check)
@@ -122,6 +123,62 @@ Each script has, at minimum, a set of shared options relating to pxGrid node nam
 Note that most of the examples below focus on using pxGrid 2.0 **without certs**, enabled by the command line option `--insecure`. This is for simplicity. Please refer to pxGrid 2.0 documentation on DevNet or to the [basic examples repo](ttps://github.com/cisco-pxgrid/pxgrid-rest-ws) for examples of how to run with certs.
 
 Also, not all example scripts will be demonstrated here.
+
+
+### `px-publish`
+
+This example uses `--insecure`.
+
+```
+$ px-publish \
+   --insecure \
+   -a ise-3-2.hareshaw.net \
+   -w **************** \
+   -n producer \
+   --service com.cisco.einarnn.special \
+   --topic customTopic \
+   --verbose
+2023-08-27 21:08:38,587:pxgrid_util.pxgrid:DEBUG:account_activate
+2023-08-27 21:08:38,587:pxgrid_util.pxgrid:DEBUG:send_rest_request AccountActivate
+2023-08-27 21:08:38,644:pxgrid_util.pxgrid:DEBUG:service_register com.cisco.einarnn.special
+2023-08-27 21:08:38,644:pxgrid_util.pxgrid:DEBUG:send_rest_request ServiceRegister
+2023-08-27 21:08:38,788:__main__:DEBUG:[service_register_response] {
+2023-08-27 21:08:38,788:__main__:DEBUG:[service_register_response]   "id": "b96aa465-5252-41cd-a961-c43ab0c46475",
+2023-08-27 21:08:38,788:__main__:DEBUG:[service_register_response]   "reregisterTimeMillis": 300000
+2023-08-27 21:08:38,788:__main__:DEBUG:[service_register_response] }
+2023-08-27 21:08:38,788:pxgrid_util.pxgrid:DEBUG:service_lookup com.cisco.einarnn.special
+2023-08-27 21:08:38,788:pxgrid_util.pxgrid:DEBUG:send_rest_request ServiceLookup
+2023-08-27 21:08:38,821:__main__:DEBUG:service lookup response:
+2023-08-27 21:08:38,821:__main__:DEBUG:  {
+2023-08-27 21:08:38,822:__main__:DEBUG:    "services": [
+2023-08-27 21:08:38,822:__main__:DEBUG:      {
+2023-08-27 21:08:38,822:__main__:DEBUG:        "name": "com.cisco.einarnn.special",
+2023-08-27 21:08:38,822:__main__:DEBUG:        "nodeName": "producer",
+2023-08-27 21:08:38,822:__main__:DEBUG:        "properties": {
+2023-08-27 21:08:38,822:__main__:DEBUG:          "customTopic": "/topic/com.cisco.einarnn.special",
+2023-08-27 21:08:38,822:__main__:DEBUG:          "wsPubsubService": "com.cisco.ise.pubsub"
+2023-08-27 21:08:38,822:__main__:DEBUG:        }
+2023-08-27 21:08:38,822:__main__:DEBUG:      }
+2023-08-27 21:08:38,822:__main__:DEBUG:    ]
+2023-08-27 21:08:38,822:__main__:DEBUG:  }
+2023-08-27 21:08:38,822:pxgrid_util.pxgrid:DEBUG:service_lookup com.cisco.ise.pubsub
+2023-08-27 21:08:38,822:pxgrid_util.pxgrid:DEBUG:send_rest_request ServiceLookup
+2023-08-27 21:08:38,868:pxgrid_util.pxgrid:DEBUG:get_access_secret ~ise-pubsub-ise-3-2
+2023-08-27 21:08:38,868:pxgrid_util.pxgrid:DEBUG:send_rest_request AccessSecret
+2023-08-27 21:08:38,897:__main__:DEBUG:[default_publisher_loop] starting subscription to /topic/com.cisco.einarnn.special at wss://ise-3-2.hareshaw.net:8910/pxgrid/ise/pubsub
+2023-08-27 21:08:38,897:__main__:DEBUG:[default_publish_loop] opening web socket and stomp
+2023-08-27 21:08:38,897:__main__:DEBUG:[default_publish_loop] connect websocket
+2023-08-27 21:08:38,897:pxgrid_util.ws_stomp:DEBUG:WebSocket Connect, ws_url=wss://ise-3-2.hareshaw.net:8910/pxgrid/ise/pubsub
+2023-08-27 21:08:38,945:__main__:DEBUG:[default_publish_loop] connect STOMP node ~ise-pubsub-ise-3-2
+2023-08-27 21:08:38,946:pxgrid_util.ws_stomp:DEBUG:STOMP CONNECT host=~ise-pubsub-ise-3-2
+2023-08-27 21:08:38,946:pxgrid_util.stomp:DEBUG:write
+2023-08-27 21:08:38,946:pxgrid_util.ws_stomp:DEBUG:stomp_connect completed
+2023-08-27 21:08:39,947:pxgrid_util.ws_stomp:DEBUG:STOMP SEND topic=/topic/com.cisco.einarnn.special
+2023-08-27 21:08:39,948:pxgrid_util.stomp:DEBUG:write
+2023-08-27 21:08:39,949:pxgrid_util.ws_stomp:DEBUG:stomp_send completed
+2023-08-27 21:08:39,949:__main__:DEBUG:[default_publish_loop] message published to node ~ise-pubsub-ise-3-2, topic /topic/com.cisco.einarnn.special
+...
+```
 
 
 ### `px-subscribe`
