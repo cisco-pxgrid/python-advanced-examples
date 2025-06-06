@@ -28,7 +28,19 @@ def query(config, secret, url, payload):
 
 if __name__ == '__main__':
     config = Config()
-    
+
+    # custom local options set to require at least one of the options
+    g = config.parser.add_mutually_exclusive_group(required=True)
+    g.add_argument(
+        '--get-system-health', action='store_true',
+        help='Get all system health objects')
+    g.add_argument(
+        '--get-system-performance', action='store_true',
+        help='Get all system performance objects')
+
+    # as we've added custom arguments, trigger parsing explicitly
+    config.parse_args()
+
     #
     # verbose logging if configured
     #
@@ -56,7 +68,7 @@ if __name__ == '__main__':
     node_name = service['nodeName']
 
     # health or performance?
-    if config.get_system_performance:
+    if config.config.get_system_performance:
         url = service['properties']['restBaseUrl'] + '/getPerformances'
     else:
         url = service['properties']['restBaseUrl'] + '/getHealths'
