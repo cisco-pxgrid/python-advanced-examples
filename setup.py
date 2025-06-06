@@ -17,7 +17,7 @@ build_scripts.first_line_re = re.compile(b'^should not match$')
 
 __author__ = "Einar Nilsen-Nygaard"
 __author_email__ = "einarnn@cisco.com"
-__copyright__ = "Copyright (c) 2021 Cisco and/or its affiliates."
+__copyright__ = "Copyright (c) 2025 Cisco and/or its affiliates."
 __license__ = "Apache 2.0"
 
 
@@ -58,7 +58,7 @@ setup(
     url='https://github.com/cisco-pxgrid/python-advanced-examples',
     download_url='https://github.com/cisco-pxgrid/python-advanced-examples',
     install_requires=[
-        'websockets>=9.1',
+        'websockets>=15.0.1',
         'aiohttp>=3.8.5',
     ],
     include_package_data=True,
