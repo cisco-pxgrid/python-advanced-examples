@@ -5,7 +5,6 @@
 from pxgrid_util import PXGridControl
 from pxgrid_util import Config
 from pxgrid_util import create_override_url
-from pxgrid_util import query
 import urllib.request
 import base64
 import time
@@ -14,21 +13,22 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
+def query(config, secret, url, payload):
+    handler = urllib.request.HTTPSHandler(context=config.ssl_context)
+    opener = urllib.request.build_opener(handler)
+    rest_request = urllib.request.Request(url=url, data=str.encode(payload))
+    rest_request.add_header('Content-Type', 'application/json')
+    rest_request.add_header('Accept', 'application/json')
+    b64 = base64.b64encode((config.node_name + ':' + secret).encode()).decode()
+    rest_request.add_header('Authorization', 'Basic ' + b64)
+    rest_response = opener.open(rest_request)
+    return rest_response.read().decode()
+
+
 if __name__ == '__main__':
     config = Config()
-
-    # custom local options set to require at least one of the options
-    g = config.parser.add_mutually_exclusive_group(required=True)
-    g.add_argument(
-        '--get-system-health', action='store_true',
-        help='Get all system health objects')
-    g.add_argument(
-        '--get-system-performance', action='store_true',
-        help='Get all system performance objects')
-
-    # as we've added custom arguments, trigger parsing explicitly
-    config.parse_args()
-
+    
     #
     # verbose logging if configured
     #
@@ -50,16 +50,11 @@ if __name__ == '__main__':
     while pxgrid.account_activate()['accountState'] != 'ENABLED':
         time.sleep(60)
 
-    # lookup for session service
-    service_lookup_response = pxgrid.service_lookup('com.cisco.ise.system')
+    # lookup for endpoint service
+    service_lookup_response = pxgrid.service_lookup('com.cisco.ise.endpoint')
     service = service_lookup_response['services'][0]
     node_name = service['nodeName']
-
-    # health or performance?
-    if config.config.get_system_performance:
-        url = service['properties']['restBaseUrl'] + '/getPerformances'
-    else:
-        url = service['properties']['restBaseUrl'] + '/getHealths'
+    url = service['properties']['restBaseUrl'] + '/getEndpoints'
 
     # log url to see what we get via discovery
     logger.info('Using URL %s', url)

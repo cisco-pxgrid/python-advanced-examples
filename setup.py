@@ -44,6 +44,7 @@ setup(
         'bin/profiles-query-all',
         'bin/px-publish',
         'bin/px-subscribe',
+        'bin/endpoint-query-all',
         'bin/session-query-all',
         'bin/session-query-by-ip',
         'bin/sgacls-query-all',
