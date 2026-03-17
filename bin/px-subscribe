@@ -60,6 +60,18 @@ SERVICE_NAMES = [
 ]
 
 
+def run_with_signals(coro):
+    with asyncio.Runner() as runner:
+        loop = runner.get_loop()
+        task = loop.create_task(coro)
+        loop.add_signal_handler(SIGINT, task.cancel)
+        loop.add_signal_handler(SIGTERM, task.cancel)
+        try:
+            runner.run(task)
+        except (asyncio.CancelledError, KeyboardInterrupt):
+            pass
+
+
 async def future_read_message(ws, future):
     try:
         message = await ws.stomp_read_message()
@@ -363,35 +375,22 @@ if __name__ == '__main__':
         secret = pxgrid.get_access_secret(pubsub_node_name)['secret']
         ws_url = pubsub_service['properties']['wsUrl']
 
-        loop = asyncio.get_event_loop()
-        main_task = asyncio.ensure_future(subscription_loop(config, secret, pubsub_node_name, ws_url, topic))
-        loop.add_signal_handler(SIGINT, main_task.cancel)
-        loop.add_signal_handler(SIGTERM, main_task.cancel)
-        try:
-            loop.run_until_complete(main_task)
-        except:
-            pass
+        run_with_signals(subscription_loop(config, secret, pubsub_node_name, ws_url, topic))
 
     else:
 
         # create all subscription tasks
-        subscriber_tasks = []
-        loop = asyncio.get_event_loop()
-        for pubsub_service in service_lookup_response['services']:
-            pubsub_node_name = pubsub_service['nodeName']
-            secret = pxgrid.get_access_secret(pubsub_node_name)['secret']
-            ws_url = pubsub_service['properties']['wsUrl']
-            logger.debug('creating task to subscribe to %s', ws_url)
-            task = asyncio.ensure_future(subscription_loop(config, secret, pubsub_node_name, ws_url, topic))
-            subscriber_tasks.append(task)
-
-        # create the run all task and graceful termination handling
-        try:
+        async def subscribe_to_all():
+            subscriber_tasks = []
+            for pubsub_service in service_lookup_response['services']:
+                pubsub_node_name = pubsub_service['nodeName']
+                secret = pxgrid.get_access_secret(pubsub_node_name)['secret']
+                ws_url = pubsub_service['properties']['wsUrl']
+                logger.debug('creating task to subscribe to %s', ws_url)
+                task = asyncio.create_task(subscription_loop(config, secret, pubsub_node_name, ws_url, topic))
+                subscriber_tasks.append(task)
             logger.debug('Create run all task')
-            run_all_task = asyncio.ensure_future(run_subscribe_all(subscriber_tasks))
-            logger.debug('Add signal handlers to run all task')
-            loop.add_signal_handler(SIGINT, run_all_task.cancel)
-            loop.add_signal_handler(SIGTERM, run_all_task.cancel)
-            loop.run_until_complete(run_all_task)
-        except:
-            pass
+            return await run_subscribe_all(subscriber_tasks)
+
+        logger.debug('Add signal handlers to run all task')
+        run_with_signals(subscribe_to_all())
