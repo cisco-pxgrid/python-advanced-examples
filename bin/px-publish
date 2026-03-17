@@ -26,6 +26,24 @@ from signal import SIGINT, SIGTERM
 logger = logging.getLogger(__name__)
 
 
+def run_with_signals(main_coro, reregister_coro):
+    with asyncio.Runner() as runner:
+        loop = runner.get_loop()
+        main_task = loop.create_task(main_coro)
+        reregister_task = loop.create_task(reregister_coro)
+
+        def cancel_tasks():
+            main_task.cancel()
+            reregister_task.cancel()
+
+        loop.add_signal_handler(SIGINT, cancel_tasks)
+        loop.add_signal_handler(SIGTERM, cancel_tasks)
+        try:
+            runner.run(main_task)
+        except (asyncio.CancelledError, KeyboardInterrupt):
+            pass
+
+
 async def default_service_reregister_loop(config, pxgrid, service_id, reregister_delay):
     '''
     Simple custom service reregistration to keep things alive.
@@ -183,17 +201,6 @@ if __name__ == '__main__':
     #
     # setup periodic service reregistration as a task
     #
-    reregister_task = asyncio.ensure_future(
-        default_service_reregister_loop(
-            config,
-            pxgrid,
-            resp['id'],
-            config.reregister_delay,
-    ))
-
-    #
-    # now lookup service and topic details for the service we just registered
-    #
     service_lookup_response = pxgrid.service_lookup(config.service)
     slr_string = json.dumps(service_lookup_response, indent=2, sort_keys=True)
     logger.debug('service lookup response:')
@@ -228,7 +235,7 @@ if __name__ == '__main__':
     #
     # setup the publishing loop
     #
-    main_task = asyncio.ensure_future(
+    main_coro = (
         default_publish_loop(
             config,
             secret,
@@ -240,17 +247,12 @@ if __name__ == '__main__':
     #
     # setup sigint/sigterm handlers
     #
-    def signal_handlers():
-        main_task.cancel()
-        reregister_task.cancel()
-    loop = asyncio.get_event_loop()
-    loop.add_signal_handler(SIGINT, signal_handlers)
-    loop.add_signal_handler(SIGTERM, signal_handlers)
-
-    #
-    # finally, get going!!
-    #
-    try:
-        loop.run_until_complete(main_task)
-    except:
-        pass
+    run_with_signals(
+        main_coro,
+        default_service_reregister_loop(
+            config,
+            pxgrid,
+            resp['id'],
+            config.reregister_delay,
+        ),
+    )

@@ -126,7 +126,7 @@ def apply_bulk_anc_policy_by_mac(config, secret, url, bulk_policy, bulk_mac_addr
     '''
     Apply ANC policy in bulk using `asyncio` techniques.
     '''
-    asyncio.get_event_loop().run_until_complete(
+    asyncio.run(
         apply_anc_policy_to_macs(
             config=config,
             secret=secret,
@@ -253,4 +253,3 @@ if __name__ == '__main__':
             print('{}')
     else:
         apply_bulk_anc_policy_by_mac(config, secret, url, bulk_policy, bulk_mac_addrs_file)
-
