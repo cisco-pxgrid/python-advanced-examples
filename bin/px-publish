@@ -86,7 +86,7 @@ async def default_publish_loop(config, secret, pubsub_node_name, ws_url, topic):
         count = 0
         while True:
 
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(config.publish_delay)
             count += 1
             message = {
                 'count': count,
