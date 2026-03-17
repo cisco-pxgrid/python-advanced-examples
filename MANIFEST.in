@@ -1,2 +1,0 @@
-include versioneer.py
-include pxgrid_util/_version.py

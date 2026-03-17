@@ -1,8 +1,15 @@
-
-from . import _version
 import logging
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = _version.get_versions()['version']
+try:
+    from . import _version
+except ImportError:
+    try:
+        __version__ = version("pxgrid_util")
+    except PackageNotFoundError:
+        __version__ = "0+unknown"
+else:
+    __version__ = _version.version
 
 import urllib
 import base64
@@ -39,5 +46,4 @@ def query(config, secret, url, payload):
     rest_request.add_header('Authorization', 'Basic ' + b64)
     rest_response = opener.open(rest_request)
     return rest_response.read().decode()
-
 

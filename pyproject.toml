@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling>=1.27", "hatch-vcs>=0.5"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pxgrid_util"
+description = "A utility library and example scripts for Cisco pxGrid 2.0"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [
+  { name = "Einar Nilsen-Nygaard", email = "einarnn@cisco.com" },
+]
+keywords = ["ISE", "pxGrid"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+]
+dependencies = [
+  "aiohttp>=3.8.5",
+  "websockets>=15.0.1",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/cisco-pxgrid/python-advanced-examples"
+Repository = "https://github.com/cisco-pxgrid/python-advanced-examples"
+Download = "https://github.com/cisco-pxgrid/python-advanced-examples"
+
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "^v(?P<version>.*)$"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "pxgrid_util/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pxgrid_util"]
+shared-scripts = { "bin/anc-policy" = "anc-policy", "bin/create-new-pxgrid-account" = "create-new-pxgrid-account", "bin/endpoint-query-all" = "endpoint-query-all", "bin/matrix-query-all" = "matrix-query-all", "bin/profiles-query-all" = "profiles-query-all", "bin/px-publish" = "px-publish", "bin/px-subscribe" = "px-subscribe", "bin/session-query-all" = "session-query-all", "bin/session-query-by-ip" = "session-query-by-ip", "bin/sgacls-query-all" = "sgacls-query-all", "bin/sgts-query-all" = "sgts-query-all", "bin/sxp-query-bindings" = "sxp-query-bindings", "bin/system-query-all" = "system-query-all", "bin/user-groups-query" = "user-groups-query" }
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/LICENSE",
+  "/NOTICE",
+  "/README.md",
+  "/bin",
+  "/pxgrid_util",
+  "/sample_macs",
+]

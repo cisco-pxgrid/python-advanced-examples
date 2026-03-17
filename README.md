@@ -71,6 +71,12 @@ All the examples may be installed using `pip`, making the examples available in 
 
         pip3 install pxgrid-util
 
+For local builds from a checkout, use Hatch instead of `setup.py`:
+
+```
+hatch build
+```
+
 
 ## Description Of Samples
 
@@ -116,6 +122,29 @@ Each script has, at minimum, a set of shared options relating to pxGrid node nam
   --insecure            Allow insecure server connections when using SSL
   -v, --verbose         Verbose output
 ```
+
+## Maintainer Release Flow
+
+Package builds are now driven by Hatch, and PyPI publishing is handled by GitHub Actions when you push a version tag.
+
+1. Make sure the working tree is clean before building or tagging, otherwise the generated package version will grow a dirty suffix.
+2. Build locally if you want to sanity check the artifacts:
+
+```
+hatch build
+```
+
+3. Create and push a release tag using the existing `vX.Y.Z` scheme:
+
+```
+git tag v0.7.0
+git push origin v0.7.0
+```
+
+4. GitHub Actions will build the sdist and wheel, then publish them to PyPI.
+
+The PyPI project must be configured for trusted publishing against this repository and workflow file. If that setup is missing or mismatched, the publish step will fail exactly as it should.
+
 
 
 ## Sample Invocations
@@ -411,4 +440,3 @@ If you wish to mutual cert-based authentication:
         - Confirm Password: {fill in the same password as above}
 - Click the 'Create' button. A zip file should download to your machine
 - Extract the downloaded file.
-

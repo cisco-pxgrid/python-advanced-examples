@@ -12,6 +12,10 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+.hatch-cache/
+.hatch-data/
+.uv-cache/
+pxgrid_util/_version.py
 develop-eggs/
 dist/
 downloads/
