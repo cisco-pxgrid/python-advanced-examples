@@ -44,6 +44,6 @@ def query(config, secret, url, payload):
     rest_request.add_header('Accept', 'application/json')
     b64 = base64.b64encode((config.node_name + ':' + secret).encode()).decode()
     rest_request.add_header('Authorization', 'Basic ' + b64)
-    rest_response = opener.open(rest_request)
+    rest_response = opener.open(rest_request, timeout=config.timeout)
     return rest_response.read().decode()
 
