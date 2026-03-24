@@ -44,6 +44,7 @@ event_keys = {}
 # written or updated.
 #
 SERVICE_NAMES = [
+    "com.cisco.ise.config.deployment.node",
     "com.cisco.endpoint.asset",
     "com.cisco.endpoint",
     "com.cisco.ise.config.anc",
@@ -61,13 +62,16 @@ SERVICE_NAMES = [
 
 
 def run_with_signals(coro):
-    with asyncio.Runner() as runner:
-        loop = runner.get_loop()
-        task = loop.create_task(coro)
+    async def runner_main():
+        task = asyncio.create_task(coro)
+        loop = asyncio.get_running_loop()
         loop.add_signal_handler(SIGINT, task.cancel)
         loop.add_signal_handler(SIGTERM, task.cancel)
+        return await task
+
+    with asyncio.Runner() as runner:
         try:
-            runner.run(task)
+            runner.run(runner_main())
         except (asyncio.CancelledError, KeyboardInterrupt):
             pass
 
@@ -312,23 +316,6 @@ if __name__ == '__main__':
         # first, the basic service
         service_lookup_response = pxgrid.service_lookup(config.service_details)
         print(json.dumps(service_lookup_response, indent=2, sort_keys=True))
-
-        # check if any of tje services have a "wsPubsubService", and, if so,
-        # also list out those services
-        if "services" in service_lookup_response:
-            topics = []
-            for s in service_lookup_response['services']:
-                pubsub_service = s['properties'].get('wsPubsubService')
-                if pubsub_service:
-                    for p, v in s['properties'].items():
-                        if 'topic' in p.lower():
-                            topics.append({p: v, 'wsPubsubService': pubsub_service})
-                    break
-            
-            # lookup the pubsub service if there is one
-            pubsub_slr = pxgrid.service_lookup(pubsub_service)
-            if pubsub_slr:
-                print(json.dumps(pubsub_slr, indent=2, sort_keys=True))
 
         # now exit
         sys.exit(0)

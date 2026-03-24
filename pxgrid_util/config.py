@@ -67,6 +67,9 @@ class Config:
             '--discovery-override', type=str,
             help='Override pxGrid service discovery (for test environments without proper DNS)')
         self.parser.add_argument(
+            '--timeout', default=10.0, type=float,
+            help='Timeout for REST requests in seconds (float)')
+        self.parser.add_argument(
             '-v', '--verbose', action='store_true',
             help='Verbose output')
 
@@ -222,6 +225,11 @@ class Config:
     @ensure_parsed
     def service_details(self):
         return self.config.service_details
+
+    @property
+    @ensure_parsed
+    def timeout(self):
+        return self.config.timeout
 
     @property
     @ensure_parsed

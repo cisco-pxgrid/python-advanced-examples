@@ -48,7 +48,7 @@ if __name__ == '__main__':
     rest_request.add_header('Content-Type', 'application/json')
     rest_request.add_header('Accept', 'application/json')
     try:
-        rest_response = opener.open(rest_request)
+        rest_response = opener.open(rest_request, timeout=config.timeout)
     except urllib.error.HTTPError as e:
         logger.error('Failed to create account, code=%d, reason=%s', e.code, e.reason)
         sys.exit(errno.EINVAL)
@@ -74,7 +74,7 @@ if __name__ == '__main__':
         account_details['password']).encode()).decode()
     rest_request.add_header('Authorization', 'Basic ' + b64)
     try:
-        rest_response = opener.open(rest_request)
+        rest_response = opener.open(rest_request, timeout=config.timeout)
     except urllib.error.HTTPError as e:
         logger.error('Failed to activate account, code=%d, reason=%s', e.code, e.reason)
         sys.exit(errno.EINVAL)
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     b64 = base64.b64encode('{}:{}'.format(config.username, config.password).encode()).decode()
     rest_request.add_header('Authorization', 'Basic ' + b64)
     try:
-        rest_response = opener.open(rest_request)
+        rest_response = opener.open(rest_request, timeout=config.timeout)
     except urllib.error.HTTPError as e:
         logger.error('Failed to approve account, code=%d, reason=%s', e.code, e.reason)
         sys.exit(errno.EINVAL)

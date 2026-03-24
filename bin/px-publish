@@ -2,19 +2,14 @@
 #
 # Copyright (c) 2021 Cisco Systems, Inc. and/or its affiliates
 #
-from io import StringIO
 from pxgrid_util import PXGridControl
 from pxgrid_util import Config
 from pxgrid_util import create_override_url
 import asyncio
-from asyncio.tasks import FIRST_COMPLETED
 import json
 import sys
 import time
 import logging
-import threading
-import hashlib
-from websockets import ConnectionClosed
 from websockets.exceptions import WebSocketException
 from pxgrid_util import WebSocketStomp
 from signal import SIGINT, SIGTERM
@@ -27,10 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 def run_with_signals(main_coro, reregister_coro):
-    with asyncio.Runner() as runner:
-        loop = runner.get_loop()
-        main_task = loop.create_task(main_coro)
-        reregister_task = loop.create_task(reregister_coro)
+    async def runner_main():
+        main_task = asyncio.create_task(main_coro)
+        reregister_task = asyncio.create_task(reregister_coro)
+        loop = asyncio.get_running_loop()
 
         def cancel_tasks():
             main_task.cancel()
@@ -39,7 +34,13 @@ def run_with_signals(main_coro, reregister_coro):
         loop.add_signal_handler(SIGINT, cancel_tasks)
         loop.add_signal_handler(SIGTERM, cancel_tasks)
         try:
-            runner.run(main_task)
+            return await main_task
+        finally:
+            reregister_task.cancel()
+
+    with asyncio.Runner() as runner:
+        try:
+            runner.run(runner_main())
         except (asyncio.CancelledError, KeyboardInterrupt):
             pass
 

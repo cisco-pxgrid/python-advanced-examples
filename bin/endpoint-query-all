@@ -2,33 +2,68 @@
 #
 # Copyright (c) 2021 Cisco Systems, Inc. and/or its affiliates
 #
-from pxgrid_util import PXGridControl
-from pxgrid_util import Config
-from pxgrid_util import create_override_url
-import urllib.request
-import base64
 import time
 import logging
 import json
+import argparse
+
+from pxgrid_util import PXGridControl
+from pxgrid_util import Config
+from pxgrid_util import create_override_url
+from pxgrid_util import query
 
 logger = logging.getLogger(__name__)
 
+help_text = '''
+Query all endpoints from ISE. This script is intended to be used with pxGrid
+and the com.cisco.ise.endpoint service, and will query for endpoints based on
+either a create or update timestamp and an order. The order {ASC, DESC} will
+determine whether the query returns the oldest or most recent endpoints first
+and how the timestamp is used in the underlying query.
 
-def query(config, secret, url, payload):
-    handler = urllib.request.HTTPSHandler(context=config.ssl_context)
-    opener = urllib.request.build_opener(handler)
-    rest_request = urllib.request.Request(url=url, data=str.encode(payload))
-    rest_request.add_header('Content-Type', 'application/json')
-    rest_request.add_header('Accept', 'application/json')
-    b64 = base64.b64encode((config.node_name + ':' + secret).encode()).decode()
-    rest_request.add_header('Authorization', 'Basic ' + b64)
-    rest_response = opener.open(rest_request)
-    return rest_response.read().decode()
+For example, if the order is DESC and a create timestamp is provided, the query
+will return the most recently created endpoints starting with the create
+timestamp and working backwards in time. If the order is ASC and a create
+timestamp is provided, the query will return the oldest endpoints starting with
+the create timestamp and working forwards in time. The same applies to the
+update timestamp, but with the endpoint update time instead of create time.
 
+By default, the script will return up to 1000 endpoints starting with the most
+recently created or updated endpoints, but these options can be configured via
+command line arguments.
+
+The script will return a list of endpoints in JSON format to STDOUT. 
+'''
 
 if __name__ == '__main__':
     config = Config()
-    
+
+    # custom local options set to require at least one of the options
+    config.parser.description = help_text
+    config.parser.formatter_class=argparse.RawDescriptionHelpFormatter
+    config.parser.add_argument(
+        '--ep-start-index', type=int, default=0,
+        help='start index in endpoint query results to return')
+    config.parser.add_argument(
+        '--ep-count', type=int, default=1000,
+        help='number of endpoints to return')
+    config.parser.add_argument(
+        '--ep-order', type=str, choices=['ASC', 'DESC'], default='DESC',
+        help='order of endpoints to return (ASC or DESC)')
+
+    # must specify a timestamp for either create or update, but not both
+    g = config.parser.add_mutually_exclusive_group(required=True)
+    g.add_argument(
+        '--ep-start-timestamp', type=str,
+        help='start timestamp for endpoint query (e.g. 2021-01-01T00:00:00.000+00:00)')
+    g.add_argument(
+        '--ep-update-timestamp', type=str,
+        help='update timestamp for endpoint query (e.g. 2021-01-01T00:00:00.000+00:00)')
+
+    # as we've added custom arguments, trigger parsing explicitly
+    config.parse_args()
+
+
     #
     # verbose logging if configured
     #
@@ -65,11 +100,17 @@ if __name__ == '__main__':
 
     secret = pxgrid.get_access_secret(node_name)['secret']
     logger.info('Using access secret %s', secret)
-    if config.start_timestamp:
-        payload = {
-            'startTimestamp': config.start_timestamp
-        }
-        resp = query(config, secret, url, json.dumps(payload))
+    payload = {
+        # 'startCreateTimestamp': config.config.ep_start_timestamp,
+        # 'startUpdateTimestamp': config.config.ep_update_timestamp,
+        'count': config.config.ep_count,
+        'order': config.config.ep_order,
+        'startIndex': config.config.ep_start_index,
+        'skipConfigCheck': True,
+    }
+    if config.config.ep_update_timestamp:
+        payload['startUpdateTimestamp'] = config.config.ep_update_timestamp
     else:
-        resp = query(config, secret, url, '{}')
+        payload['startCreateTimestamp'] = config.config.ep_start_timestamp
+    resp = query(config, secret, url, json.dumps(payload))
     print(json.dumps(json.loads(resp), indent=2, sort_keys=True))
