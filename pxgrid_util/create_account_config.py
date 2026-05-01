@@ -19,6 +19,10 @@ class CreateAccountConfig:
             '--nodename', required=True,
             help='Client node name to create and approve')
         parser.add_argument(
+            '--timeout', type=float,
+            default=10.0,
+            help='timeout for API calls in seconds, default=10.0')
+        parser.add_argument(
             '--description', type=str,
             default='pxGrid Client',
             help='Optional description for the pxGrid client/node')
@@ -51,6 +55,10 @@ class CreateAccountConfig:
     @property
     def nodename(self):
         return self.config.nodename
+
+    @property
+    def timeout(self):
+        return self.config.timeout
 
     @property
     def description(self):
