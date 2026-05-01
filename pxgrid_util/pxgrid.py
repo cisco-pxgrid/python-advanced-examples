@@ -26,7 +26,7 @@ class PXGridControl:
         username_password = '%s:%s' % (self.config.node_name, self.config.password)
         b64 = base64.b64encode(username_password.encode()).decode()
         rest_request.add_header('Authorization', 'Basic ' + b64)
-        rest_response = opener.open(rest_request)
+        rest_response = opener.open(rest_request, timeout=self.config.timeout)
         response = rest_response.read().decode()
         return json.loads(response)
 

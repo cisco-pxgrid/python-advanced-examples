@@ -6,8 +6,6 @@ from pxgrid_util import PXGridControl
 from pxgrid_util import Config
 from pxgrid_util import create_override_url
 from pxgrid_util import query
-import urllib.request
-import base64
 import time
 import logging
 import json

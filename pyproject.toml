@@ -41,7 +41,22 @@ version-file = "pxgrid_util/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pxgrid_util"]
-shared-scripts = { "bin/anc-policy" = "anc-policy", "bin/create-new-pxgrid-account" = "create-new-pxgrid-account", "bin/endpoint-query-all" = "endpoint-query-all", "bin/matrix-query-all" = "matrix-query-all", "bin/profiles-query-all" = "profiles-query-all", "bin/px-publish" = "px-publish", "bin/px-subscribe" = "px-subscribe", "bin/session-query-all" = "session-query-all", "bin/session-query-by-ip" = "session-query-by-ip", "bin/sgacls-query-all" = "sgacls-query-all", "bin/sgts-query-all" = "sgts-query-all", "bin/sxp-query-bindings" = "sxp-query-bindings", "bin/system-query-all" = "system-query-all", "bin/user-groups-query" = "user-groups-query" }
+shared-scripts = {
+  "bin/anc-policy" = "anc-policy",
+  "bin/create-new-pxgrid-account" = "create-new-pxgrid-account",
+  "bin/endpoint-query-all" = "endpoint-query-all",
+  "bin/matrix-query-all" = "matrix-query-all",
+  "bin/profiles-query-all" = "profiles-query-all",
+  "bin/px-publish" = "px-publish",
+  "bin/px-subscribe" = "px-subscribe",
+  "bin/session-query-all" = "session-query-all",
+  "bin/session-query-by-ip" = "session-query-by-ip",
+  "bin/sgacls-query-all" = "sgacls-query-all",
+  "bin/sgts-query-all" = "sgts-query-all",
+  "bin/sxp-query-bindings" = "sxp-query-bindings",
+  "bin/system-query-all" = "system-query-all",
+  "bin/user-groups-query" = "user-groups-query"
+}
 
 [tool.hatch.build.targets.sdist]
 include = [
