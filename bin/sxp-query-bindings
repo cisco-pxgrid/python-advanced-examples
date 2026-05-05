@@ -5,6 +5,7 @@
 from pxgrid_util import PXGridControl
 from pxgrid_util import Config
 from pxgrid_util import create_override_url
+from pxgrid_util import build_query_payload
 from pxgrid_util import query
 import time
 import logging
@@ -51,11 +52,8 @@ if __name__ == '__main__':
 
     secret = pxgrid.get_access_secret(node_name)['secret']
     logger.info('Using access secret %s', secret)
-    if config.start_timestamp:
-        payload = {
-            'startTimestamp': config.start_timestamp
-        }
-        resp = query(config, secret, url, json.dumps(payload))
-    else:
-        resp = query(config, secret, url, '{}')
+    payload = build_query_payload(
+        start_timestamp=config.start_timestamp,
+        filter_value=config.filter)
+    resp = query(config, secret, url, json.dumps(payload))
     print(json.dumps(json.loads(resp), indent=2, sort_keys=True))

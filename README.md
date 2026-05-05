@@ -293,6 +293,21 @@ $ px-subscribe \
 2020-03-31 09:45:14,014:ws_stomp:DEBUG:STOMP CONNECTED version=1.2
 ```
 
+#### Subscribing with an optional JMESPath filter
+
+The `--filter` option is validated locally before the subscription is attempted
+and, when present, is sent as an extra STOMP header named `filter`.
+
+```
+$ px-subscribe \
+    -a your.server.fqdn \
+    -n NODENAME \
+    -w NODESECRET \
+    --service com.cisco.ise.session \
+    --topic sessionTopic \
+    --filter "sessions[?state == 'STARTED']"
+```
+
 ### `session-query-all`
 
 Using password authentication plus server public cert:
@@ -305,6 +320,33 @@ session-query-all \
     -w NODESECRET
 {"sessions":[]}
 ```
+
+An optional JMESPath filter may be supplied with `--filter`. The expression is
+validated locally before the request is sent and, when present, is included in
+the POST body as `filter`.
+
+```
+session-query-all \
+    -a your.server.fqdn \
+    -n NODENAME \
+    -w NODESECRET \
+    --filter "sessions[?nasIpAddress == '10.0.0.10']"
+```
+
+### `sxp-query-bindings`
+
+Using password authentication plus server public cert:
+
+```
+sxp-query-bindings \
+    -a your.server.fqdn \
+    -n NODENAME \
+    -w NODESECRET \
+    --filter "bindings[?sourceSgt == '2']"
+```
+
+The optional `--filter` value is treated as a JMESPath expression, validated
+locally before the request is sent, and included in the POST body as `filter`.
 
 ### `sgacls-query-all`
 

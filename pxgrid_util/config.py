@@ -1,6 +1,7 @@
 import argparse
 import ssl
 import enum
+from .filtering import argparse_filter
 
 
 class AncPolicyType(enum.Enum):
@@ -118,6 +119,9 @@ class Config:
         self.parser.add_argument(
             '--start-timestamp', type=str,
             help='Optional startTimestamp for queries')
+        self.parser.add_argument(
+            '--filter', type=argparse_filter,
+            help='Optional JMESPath filter expression')
 
         #
         # Options for getting, applying and clearing ANC policies via
@@ -283,6 +287,11 @@ class Config:
     @ensure_parsed
     def start_timestamp(self):
         return self.config.start_timestamp
+
+    @property
+    @ensure_parsed
+    def filter(self):
+        return self.config.filter
 
     @property
     @ensure_parsed

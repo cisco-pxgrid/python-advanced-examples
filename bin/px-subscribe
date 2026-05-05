@@ -103,7 +103,10 @@ async def default_subscription_loop(config, secret, pubsub_node_name, ws_url, to
     try:
         await ws.connect()
         await ws.stomp_connect(pubsub_node_name)
-        await ws.stomp_subscribe(topic)
+        headers = {}
+        if config.filter:
+            headers['filter'] = config.filter
+        await ws.stomp_subscribe(topic, headers=headers or None)
     except Exception as e:
         logger.debug('Failed to connect, Exception: %s', e.__str__())
         return
@@ -188,7 +191,10 @@ async def session_dedup_loop(config, secret, pubsub_node_name, ws_url, topic):
     try:
         await ws.connect()
         await ws.stomp_connect(pubsub_node_name)
-        await ws.stomp_subscribe(topic)
+        headers = {}
+        if config.filter:
+            headers['filter'] = config.filter
+        await ws.stomp_subscribe(topic, headers=headers or None)
     except Exception as e:
         logger.debug('Failed to connect, Exception: %s', e.__str__())
         return
