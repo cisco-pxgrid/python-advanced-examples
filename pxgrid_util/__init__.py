@@ -16,6 +16,8 @@ import base64
 from urllib.parse import urlparse
 from .config import Config
 from .create_account_config import CreateAccountConfig
+from .filtering import build_query_payload
+from .filtering import validate_filter_syntax
 from .pxgrid import PXGridControl
 from .ws_stomp import WebSocketStomp
 
@@ -46,4 +48,3 @@ def query(config, secret, url, payload):
     rest_request.add_header('Authorization', 'Basic ' + b64)
     rest_response = opener.open(rest_request, timeout=config.timeout)
     return rest_response.read().decode()
-

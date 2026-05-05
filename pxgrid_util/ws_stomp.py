@@ -37,12 +37,15 @@ class WebSocketStomp:
         await self.ws.send(out.getvalue().encode('utf-8'))
         logger.debug('stomp_connect completed')
 
-    async def stomp_subscribe(self, topic):
+    async def stomp_subscribe(self, topic, headers=None):
         logger.debug('STOMP SUBSCRIBE topic=%s', topic)
         frame = StompFrame()
         frame.set_command("SUBSCRIBE")
         frame.set_header('destination', topic)
         frame.set_header('id', 'my-id')
+        if headers:
+            for key, value in headers.items():
+                frame.set_header(key, value)
         out = StringIO()
         frame.write(out)
         await self.ws.send(out.getvalue().encode('utf-8'))
